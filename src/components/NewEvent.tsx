@@ -5,7 +5,7 @@ Licenced under EUROPEAN UNION PUBLIC LICENCE v. 1.2.
 import {ChangeEvent, useState} from "react";
 import {Event} from "../types/Event";
 
-
+let tempQuotas: Map<string, string>[] = []
 // @ts-ignore
 export async function action({request}) {
     const formData = await request.formData()
@@ -55,6 +55,7 @@ function convertLocalDateToUTCISOString(inputDate: string | number | Date): stri
 }
 
 export default function NewEvent() {
+    // Form fields
     const [name, setName] = useState("")
     const [place, setPlace] = useState("")
     const [price, setPrice] = useState("")
@@ -66,8 +67,12 @@ export default function NewEvent() {
     const [bannerImg, setBannerImg] = useState("")
     const [minParticipants, setMinParticipants] = useState("")
     const [maxParticipants, setMaxParticipants] = useState("")
-    const [quotas, setQuotas] = useState(new Map<string, string>)
+    const [quotas, setQuotas] = useState([new Map<string, string>])
+    const [prettyPrintQuotas, setPrettyPrintQuotas] = useState("")
+    const [modalInputGroup, setModalInputGroup] = useState("")
+    const [modalInputQuota, setModalInputQuota] = useState("")
     // const [form, setForm] = useState({})
+    // Visibility modifiers
     const [isLoading, setIsLoading] = useState(false)
     const [endDateVisible, setEndDateVisible] = useState(false)
     const [signupEndDateVisible, setSignupEndDateVisible] = useState(false)
@@ -79,15 +84,14 @@ export default function NewEvent() {
     const classNameNotLoading = "control"
     const classNameModalActive = "modal is-active"
     const classNameModalNonActive = "modal"
+    let latestIndex = 0
 
-    function handleQuotas(): void {
-
-    }
-
-    function prettyPrintQuotas(): string {
+    function formatQuotas(): string {
         let returnValue = ""
-        if (quotas && quotas.size) {
-
+        if (tempQuotas && tempQuotas.length) {
+            tempQuotas.forEach(quota => {
+                returnValue += quota.entries().next().value + "\n"
+            })
         }
         return returnValue
     }
@@ -105,7 +109,48 @@ export default function NewEvent() {
     }
 
     function saveQuotas(): void {
+        setIsLoading(true)
+        saveQuota()
+        setPrettyPrintQuotas(formatQuotas())
+        hideModal()
+        setIsLoading(false)
+    }
 
+    function addInputRow(): void {
+        saveQuota()
+        setQuotas([...quotas, new Map<string, string>()])
+    }
+
+    function saveQuotaGroup(value: string, index: number): void {
+        setModalInputGroup(value)
+        console.log("in saveQuotaGroup. index: " + index)
+        latestIndex = index
+    }
+
+    function saveQuotaValue(value: string, index: number): void {
+        setModalInputQuota(value)
+        console.log("in saveQuotaValue. index: " + index)
+        latestIndex = index
+    }
+
+    function saveQuota(): void {
+        const newQuota = new Map<string, string>()
+        newQuota.set(modalInputGroup, modalInputQuota)
+        console.log("latestIndex: " + latestIndex)
+        if (latestIndex === 0) {
+            setQuotas([newQuota])
+        } else {
+            setQuotas([...quotas, newQuota])
+        }
+        setModalInputGroup("")
+        setModalInputQuota("")
+        tempQuotas.push(newQuota)
+    }
+
+    function resetQuotas(): void {
+        setQuotas([new Map<string, string>()])
+        setPrettyPrintQuotas("")
+        tempQuotas = []
     }
 
     return (
@@ -114,6 +159,7 @@ export default function NewEvent() {
                 <p>
                     Pakolliset kentät on merkitty tähdellä (*).
                 </p>
+                {/* FIXME should probably use Form */}
                 <form onSubmit={handleForm}>
                     <div className={"field"}>
                         <label className={"label"}>Tapahtuman nimi*</label>
@@ -284,19 +330,18 @@ export default function NewEvent() {
                         <div className={"field is-grouped"}>
                             <div className={"control"}>
                                 <textarea id={"quotas"} name={"quotas"} className={"textarea"} readOnly={true}
-                                          value={prettyPrintQuotas()}
+                                          value={prettyPrintQuotas}
                                           required={false} disabled={true}/>
-                                {/*  FIXME proper modal for input and input handling  */}
                             </div>
                             <button
                                 className={"button"}
-                                onClick={showModal}>{(quotas && quotas.size) ? "Muokkaa kiintiöitä" : "Lisää kiintiöitä"}</button>
+                                onClick={showModal}>{(quotas && quotas.length) ? "Muokkaa kiintiöitä" : "Lisää kiintiöitä"}</button>
                         </div>
                     </>
                     }
                     <div className={"field is-grouped"}>
                         <button className="button is-link" type={"submit"}>Luo uusi tapahtuma</button>
-                        <button className="button is-text" type={"reset"}>Tyhjennä</button>
+                        <button className="button is-text" type={"reset"} onReset={resetQuotas}>Tyhjennä</button>
                     </div>
                 </form>
             </section>
@@ -309,33 +354,75 @@ export default function NewEvent() {
                             <button className="delete" aria-label="close" onClick={hideModal}></button>
                         </header>
                         <section className="modal-card-body">
-                            <div className={"field is-grouped"}>
-                                {/*FIXME ei toimi kunnolla*/}
-                                <label className={"label"}>Käyttäjäryhmä</label>
-                                <label className={"label"}>Kiintiö</label>
-                                <button className={"button"}>Lisää</button>
+
+                            <div className={"field"}>
+                                {/*<div className={"control"}>*/}
+                                <button className={"button is-small"} onClick={addInputRow}>Lisää uusi kiintiö</button>
+                                {/*</div>*/}
                             </div>
-                            {(quotas && quotas.size) ? Array.from(quotas.keys()).map(key => (
-                                    <>
-                                        <div className={"field is-grouped"}>
-                                            <input type={"text"} name={key} defaultValue={key}/>
-                                            <input type={"text"} name={quotas.get(key)} defaultValue={quotas.get(key)}/>
-                                            {/*<button className={"button"}></button>*/}
-                                            <i className="fas fa-pencil-alt"></i>
-                                        </div>
-                                    </>
-                                )
-                            ) : (
-                                <>
-                                    <div className={"field is-grouped"}>
-                                        <input type={"text"} name={"emptyGroup"}/>
-                                        <input type={"text"} name={"emptyQuota"}/>
-                                        {/*<button className={"button"}></button>*/}
-                                        <i className="fas fa-pencil-alt"></i>
+                            {quotas.map((quota, index: number) => (
+                                <div className={"field is-grouped"}>
+                                    <div className={"control"}>
+                                        <input key={index.toString()} name={"group_" + index.toString()}
+                                               value={Array.from(quota.keys())[0]} placeholder={"Käyttäjäryhmä"}
+                                               onChange={e => saveQuotaGroup(e.target.value, index)}/>
                                     </div>
-                                </>
-                            )
+                                    <div className={"control"}>
+                                        <input type={"number"} key={Array.from(quota.keys())[0]}
+                                               name={"quota_" + index.toString()}
+                                               value={Array.from(quota.values())[0]} placeholder={"Kiintiö"}
+                                               onChange={e => saveQuotaValue(e.target.value, index)}/>
+                                    </div>
+                                </div>
+                            ))
                             }
+                            <div className={"field is-grouped"}>
+                                <div className={isLoading ? classNameLoading : classNameNotLoading}>
+                                    <button className={"button"} onClick={saveQuotas}>Tallenna</button>
+                                </div>
+                                <button className={"button"} onClick={hideModal}>Peruuta</button>
+                            </div>
+
+                            {/*<div className={"field is-grouped"}>*/}
+                            {/*    /!*FIXME ei toimi kunnolla*!/*/}
+                            {/*    <div className={"control"}>*/}
+                            {/*        <label className={"label"}>Käyttäjäryhmä</label>*/}
+                            {/*    </div>*/}
+                            {/*    <div className={"control"}>*/}
+                            {/*        <label className={"label"}>Kiintiö</label>*/}
+                            {/*    </div>*/}
+                            {/*    <div className={"control"}>*/}
+                            {/*        <button className={"button is-small"}>Lisää</button>*/}
+                            {/*    </div>*/}
+                            {/*</div>*/}
+                            {/*<div className={"field"}>*/}
+                            {/*    <p className={"control"}>*/}
+                            {/*        <button className={"button is-small"} onClick={addInputRow}>Lisää</button>*/}
+                            {/*    </p>*/}
+                            {/*</div>*/}
+                            {/*{(quotas && quotas.size) ? Array.from(quotas.keys()).map(key => (*/}
+                            {/*        <>*/}
+                            {/*            <div className={"field is-grouped"}>*/}
+                            {/*                <input type={"text"} className={"input is-small"} name={key}*/}
+                            {/*                       defaultValue={key}/>*/}
+                            {/*                <input type={"text"} className={"input is-small"} name={quotas.get(key)}*/}
+                            {/*                       defaultValue={quotas.get(key)}/>*/}
+                            {/*                /!*<button className={"button"}></button>*!/*/}
+                            {/*                /!*<i className="fas fa-pencil-alt"></i>*!/*/}
+                            {/*            </div>*/}
+                            {/*        </>*/}
+                            {/*    )*/}
+                            {/*) : (*/}
+                            {/*    <>*/}
+                            {/*        <div className={"field is-grouped"}>*/}
+                            {/*            <input type={"text"} className={"input is-small"} name={"emptyGroup"} placeholder={"Käyttäjäryhmä"}/>*/}
+                            {/*            <input type={"text"} className={"input is-small"} name={"emptyQuota"} placeholder={"Kiintiö"}/>*/}
+                            {/*            /!*<button className={"button"}></button>*!/*/}
+                            {/*            /!*<i className="fas fa-pencil-alt"></i>*!/*/}
+                            {/*        </div>*/}
+                            {/*    </>*/}
+                            {/*)*/}
+                            {/*}*/}
                             {/*<div className={"table-container"}>*/}
                             {/*    <table className={"table is-striped is-hoverable"}>*/}
                             {/*        <thead>*/}
@@ -389,10 +476,10 @@ export default function NewEvent() {
                             {/*    <textarea className={"textarea"}>{prettyPrintQuotas()}</textarea>*/}
                             {/*</div>*/}
                         </section>
-                        <footer className="modal-card-foot">
-                            <button className="button is-success" onClick={saveQuotas}>Tallenna</button>
-                            <button className="button is-text" onClick={hideModal}>Peruuta</button>
-                        </footer>
+                        {/*<footer className="modal-card-foot">*/}
+                        {/*    <button className="button is-success" onClick={saveQuotas}>Tallenna</button>*/}
+                        {/*    <button className="button is-text" onClick={hideModal}>Peruuta</button>*/}
+                        {/*</footer>*/}
                     </div>
                 </div>
             }
