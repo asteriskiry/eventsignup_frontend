@@ -5,55 +5,6 @@ Licenced under EUROPEAN UNION PUBLIC LICENCE v. 1.2.
 import {ChangeEvent, Component} from "react";
 import {Event} from "../types/Event";
 
-
-// @ts-ignore
-export async function action({request}) {
-    const formData = await request.formData()
-    const updates = Object.fromEntries(formData)
-    const event: Event = {
-        description: updates.description,
-        place: updates.place,
-        signupStarts: convertLocalDateToUTCISOString(updates.signupStarts),
-        startDate: convertLocalDateToUTCISOString(updates.startDate),
-        name: updates.name
-    }
-    if (Object.hasOwn(updates, "bannerImg")) {
-        event.bannerImg = updates.bannerImg
-    }
-    if (Object.hasOwn(updates, "endDate")) {
-        event.endDate = convertLocalDateToUTCISOString(updates.endDate)
-    }
-    if (Object.hasOwn(updates, "maxParticipants")) {
-        event.maxParticipants = updates.maxParticipants
-    }
-    if (Object.hasOwn(updates, "minParticipants")) {
-        event.minParticipants = updates.minParticipants
-    }
-    if (Object.hasOwn(updates, "price")) {
-        event.price = updates.price
-    }
-    if (Object.hasOwn(updates, "quotas")) {
-        event.quotas = updates.quotas
-    }
-    if (Object.hasOwn(updates, "signupEnds")) {
-        event.signupEnds = convertLocalDateToUTCISOString(updates.signupEnds)
-    }
-
-    // TODO upload data to backend
-    // await updateContact(params.contactId, updates);
-    // return redirect(`/contacts/${params.contactId}`);
-    // await createContact();
-}
-
-// Source: https://stackoverflow.com/a/6777470
-function convertLocalDateToUTCISOString(inputDate: string | number | Date): string {
-    const date = new Date(inputDate)
-    const inputInUTC = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(),
-        date.getUTCDate(), date.getUTCHours(),
-        date.getUTCMinutes(), date.getUTCSeconds())
-    return new Date(inputInUTC).toISOString()
-}
-
 interface NewEventProps {
 }
 
@@ -91,6 +42,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
     private readonly classNameModalNonActive = "modal"
     latestIndex = 0
     tempQuotas: Map<string, string>[] = []
+    newEvent: Event | undefined
 
     constructor(props: NewEventProps | Readonly<NewEventProps>) {
         super(props);
@@ -114,6 +66,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
         this.saveQuotas = this.saveQuotas.bind(this)
         this.resetForm = this.resetForm.bind(this)
         this.cloneInitialState = this.cloneInitialState.bind(this)
+        this.saveForm = this.saveForm.bind(this)
     }
 
     private cloneInitialState() {
@@ -192,7 +145,47 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
     }
 
     private saveForm(): void {
+        this.newEvent = {
+            description: this.state.description,
+            place: this.state.place,
+            signupStarts: this.convertLocalDateToUTCISOString(this.state.signupStarts),
+            startDate: this.convertLocalDateToUTCISOString(this.state.startDate),
+            name: this.state.name
+        }
+        if (Object.hasOwn(this.state, "bannerImg")) {
+            this.newEvent.bannerImg = this.state.bannerImg
+        }
+        if (Object.hasOwn(this.state, "endDate")) {
+            this.newEvent.endDate = this.convertLocalDateToUTCISOString(this.state.endDate as string)
+        }
+        if (Object.hasOwn(this.state, "maxParticipants")) {
+            this.newEvent.maxParticipants = Number(this.state.maxParticipants)
+        }
+        if (Object.hasOwn(this.state, "minParticipants")) {
+            this.newEvent.minParticipants = Number(this.state.minParticipants)
+        }
+        if (Object.hasOwn(this.state, "price")) {
+            this.newEvent.price = Number(this.state.price)
+        }
+        if (Object.hasOwn(this.state, "quotas")) {
+            let newQuotas = new Map<string, string>()
+            this.state.quotas?.forEach(quota => {
+                newQuotas = new Map<string, string>([...newQuotas, ...quota])
+            })
+            this.newEvent.quotas = newQuotas
+        }
+        if (Object.hasOwn(this.state, "signupEnds")) {
+            this.newEvent.signupEnds = this.convertLocalDateToUTCISOString(this.state.signupEnds as string)
+        }
+    }
 
+    // Source: https://stackoverflow.com/a/6777470
+    private convertLocalDateToUTCISOString(inputDate: string | number | Date): string {
+        const date = new Date(inputDate)
+        const inputInUTC = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(),
+            date.getUTCDate(), date.getUTCHours(),
+            date.getUTCMinutes(), date.getUTCSeconds())
+        return new Date(inputInUTC).toISOString()
     }
 
     render() {
