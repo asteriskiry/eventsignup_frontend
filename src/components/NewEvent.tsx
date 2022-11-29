@@ -62,18 +62,18 @@ interface NewEventState {
     name: string
     place: string
     startDate: string
-    endDate: string
+    endDate?: string
     description: string
-    price: string
+    price?: string
     signupStarts: string
-    signupEnds: string
-    bannerImg: string
-    minParticipants: string
-    maxParticipants: string
-    quotas: Map<string, string>[]
-    prettyPrintQuotas: string
-    modalInputGroup: string
-    modalInputQuota: string
+    signupEnds?: string
+    bannerImg?: string
+    minParticipants?: string
+    maxParticipants?: string
+    quotas?: Map<string, string>[]
+    prettyPrintQuotas?: string
+    modalInputGroup?: string
+    modalInputQuota?: string
     // Visibility modifiers
     isLoading: boolean
     endDateVisible: boolean
@@ -95,27 +95,17 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
     constructor(props: NewEventProps | Readonly<NewEventProps>) {
         super(props);
         this.initialState = {
-            bannerImg: "",
             description: "",
-            endDate: "",
             endDateVisible: false,
             hasParticipantLimits: false,
             hasQuotas: false,
             isLoading: false,
             isModalVisible: false,
-            maxParticipants: "",
-            minParticipants: "",
-            modalInputGroup: "",
-            modalInputQuota: "",
             name: "",
             place: "",
-            prettyPrintQuotas: "",
-            quotas: [new Map<string, string>()],
             signupEndDateVisible: false,
-            signupEnds: "",
             signupStarts: "",
             startDate: "",
-            price: ""
         }
         this.state = this.cloneInitialState()
         this.addInputRow = this.addInputRow.bind(this)
@@ -142,7 +132,8 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
 
     private showModal(): void {
         this.setState({
-            'isModalVisible': true
+            'isModalVisible': true,
+            'quotas': [new Map<string, string>()]
         })
     }
 
@@ -166,7 +157,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
 
     private addInputRow(): void {
         this.saveQuota()
-        this.state.quotas.push(new Map<string, string>())
+        this.state.quotas?.push(new Map<string, string>())
     }
 
     private saveQuotaGroup(value: string, index: number): void {
@@ -185,7 +176,8 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
 
     private saveQuota(): void {
         const newQuota = new Map<string, string>()
-        newQuota.set(this.state.modalInputGroup, this.state.modalInputQuota)
+        newQuota.set(this.state.modalInputGroup as string, this.state.modalInputQuota as string)
+        // @ts-ignore
         this.state.quotas[this.latestIndex] = newQuota
         this.setState({
             'modalInputGroup': "",
@@ -405,12 +397,10 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
                             <section className="modal-card-body">
 
                                 <div className={"field"}>
-                                    {/*<div className={"control"}>*/}
                                     <button className={"button is-small"} onClick={this.addInputRow}>Lisää uusi kiintiö
                                     </button>
-                                    {/*</div>*/}
                                 </div>
-                                {this.state.quotas.map((quota, index: number) => (
+                                {this.state.quotas?.map((quota, index: number) => (
                                     <div className={"field is-grouped"}>
                                         <div className={"control"}>
                                             <input key={index.toString()} name={"group_" + index.toString()}
