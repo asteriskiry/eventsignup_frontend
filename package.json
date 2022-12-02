@@ -5,13 +5,17 @@
   "main": "sass/eventsignupstyles.scss",
   "dependencies": {
     "@types/jest": "^27.5.2",
+    "@types/jquery": "^3.5.14",
     "@types/node": "^16.11.68",
     "@types/react": "^18.0.21",
     "@types/react-dom": "^18.0.6",
+    "jquery": "^3.6.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-form-builder2": "^0.14.2",
     "react-router-dom": "^6.4.3",
     "react-scripts": "5.0.1",
+    "react-spinners": "^0.13.6",
     "typescript": "^4.8.4"
   },
   "scripts": {

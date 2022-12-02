@@ -16,5 +16,5 @@ export type Event = {
     minParticipants?: number
     maxParticipants?: number
     quotas?: Map<string, string>
-    form?: Map<string, {}>
+    form?: {}
 }
