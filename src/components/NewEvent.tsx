@@ -168,7 +168,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
 
     private resetForm(): void {
         this.setState(Object.assign(this.cloneInitialState(), {
-            'quotas': [],
+            quotas: [],
             endDate: "",
             price: "",
             signupEnds: "",
@@ -207,12 +207,11 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
             this.newEvent.price = Number(this.state.price)
         }
         if (Object.hasOwn(this.state, "quotas")) {
-            // FIXME
-            let newQuotas = new Map<string, string>()
+            let newQuotasMap = new Map<string, string>()
             this.state.quotas?.forEach(quota => {
-                newQuotas = new Map<string, string>([...newQuotas, ...quota])
+                newQuotasMap = new Map<string, string>([...newQuotasMap, ...quota])
             })
-            this.newEvent.quotas = newQuotas
+            this.newEvent.quotas = Object.fromEntries(newQuotasMap)
         }
         if (Object.hasOwn(this.state, "signupEnds")) {
             this.newEvent.signupEnds = this.convertLocalDateToUTCISOString(this.state.signupEnds as string)
@@ -223,6 +222,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
     }
 
     // Source: https://stackoverflow.com/a/6777470
+    // FIXME does not always work!
     private convertLocalDateToUTCISOString(inputDate: string | number | Date): string {
         const date = new Date(inputDate)
         const inputInUTC = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(),
