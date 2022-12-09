@@ -157,7 +157,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
         const newQuota = new Map<string, string>()
         newQuota.set(this.state.modalInputGroup as string, this.state.modalInputQuota as string)
         // @ts-ignore
-        this.state.quotas[this.latestIndex] = newQuota
+        this.state.quotas[this.latestIndex] = newQuota // FIXME "Do not mutate state directly. Use setState()"
         this.setState({
             'modalInputGroup': "",
             'modalInputQuota': ""
