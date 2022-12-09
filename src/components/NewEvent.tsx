@@ -82,7 +82,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
             showUploadError: false,
             showImageFileError: false
         }
-        this.state = this.cloneInitialState()
+        this.state = Object.assign(this.cloneInitialState(), {'quotas': [new Map<string, string>()]})
         this.addInputRow = this.addInputRow.bind(this)
         this.showModal = this.showModal.bind(this)
         this.hideModal = this.hideModal.bind(this)
@@ -112,8 +112,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
 
     private showModal(): void {
         this.setState({
-            'isModalVisible': true,
-            'quotas': [new Map<string, string>()]
+            'isModalVisible': true
         })
     }
 
@@ -271,6 +270,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
             dataToUpload = new Blob([new Uint8Array(arrayBuffer)], {type: file.type})
         })
             .catch(error => {
+                // FIXME do something else instead of logging
                 console.log(error)
             })
         postImageData("/event/banner/add", file)
@@ -290,6 +290,13 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
                 this.setState({'showUploadError': true})
             })
         this.setState({'isLoading': false})
+    }
+
+    private deleteQuotaRow(index: number) {
+        //TODO Implement me
+        // @ts-ignore
+        const quotaCopy = [...this.state.quotas]
+
     }
 
     render() {
@@ -347,7 +354,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
                             </div>
                             <div className={"control"}>
                                 <label className="checkbox">
-                                    <input type="checkbox" className={"checkbox"}
+                                    <input type="checkbox" className={"checkbox"} checked={this.state.endDateVisible}
                                            onChange={(event: ChangeEvent<HTMLInputElement>) => this.setState({'endDateVisible': event.target.checked})}/>
                                     Tapahtumalla on myös lopetuspäivä
                                 </label>
@@ -376,6 +383,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
                             <div className={"control"}>
                                 <label className="checkbox">
                                     <input type="checkbox" className={"checkbox"}
+                                           checked={this.state.signupEndDateVisible}
                                            onChange={(event: ChangeEvent<HTMLInputElement>) => this.setState({'signupEndDateVisible': event.target.checked})}/>
                                     Tapahtumaan ilmoittautumisella on myös päättymispäivä
                                 </label>
@@ -425,7 +433,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
                         </div>
                         <div className={"control"}>
                             <label className="checkbox">
-                                <input type="checkbox" className={"checkbox"}
+                                <input type="checkbox" className={"checkbox"} checked={this.state.hasParticipantLimits}
                                        onChange={(event: ChangeEvent<HTMLInputElement>) => this.setState({'hasParticipantLimits': event.target.checked})}/>
                                 Tapahtumalla on osallistujamäärä rajoituksia
                             </label>
@@ -455,7 +463,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
                         }
                         <div className={"control"}>
                             <label className="checkbox">
-                                <input type="checkbox" className={"checkbox"}
+                                <input type="checkbox" className={"checkbox"} checked={this.state.hasQuotas}
                                        onChange={(event: ChangeEvent<HTMLInputElement>) => this.setState({'hasQuotas': event.target.checked})}/>
                                 Tapahtumalla on osallistujakiintijöitä
                             </label>
@@ -508,6 +516,10 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
                                                    name={"quota_" + index.toString()}
                                                    value={Array.from(quota.values())[0]} placeholder={"Kiintiö"}
                                                    onChange={e => this.saveQuotaValue(e.target.value, index)}/>
+                                        </div>
+                                        <div className={"control"}>
+                                            <i className="fas fa-trash-alt"
+                                               onClick={() => this.deleteQuotaRow(index)}></i>
                                         </div>
                                     </div>
                                 ))
