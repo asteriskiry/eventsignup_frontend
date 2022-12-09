@@ -239,15 +239,25 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
         if (typeof this.newEvent !== "undefined") {
             this.newEvent.form = {'formData': this.formBuilderData}
         }
-        this.setState({'isLoading': true})
+        // this.setState({'isLoading': true})
         postEvent("/event/create", this.newEvent)
             .then(response => {
                 if (response.ok) {
-                    this.setState({'showSuccess': true, 'isFormBuilderVisible': false, 'isSubmitted': true})
+                    this.setState({
+                        'showSuccess': true,
+                        'isFormBuilderVisible': false,
+                        'isSubmitted': true,
+                        'isLoading': false
+                    })
                 }
             })
             .catch(error => {
-                this.setState({'showError': true, 'isFormBuilderVisible': false, 'isSubmitted': true})
+                this.setState({
+                    'showError': true,
+                    'isFormBuilderVisible': false,
+                    'isSubmitted': true,
+                    'isLoading': false
+                })
             })
     }
 
@@ -260,6 +270,9 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
         file.arrayBuffer().then((arrayBuffer) => {
             dataToUpload = new Blob([new Uint8Array(arrayBuffer)], {type: file.type})
         })
+            .catch(error => {
+                console.log(error)
+            })
         postImageData("/event/banner/add", file)
             .then(async response => {
                 if (response.ok) {
@@ -588,7 +601,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
 
                     </>
                 }
-                <ClipLoader color={'#fff'} loading={this.state.isLoading} size={150}/>
+                {/*<ClipLoader color={'#fff'} loading={this.state.isLoading} size={150}/>*/}
             </>
         )
     }
