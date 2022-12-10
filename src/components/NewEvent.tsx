@@ -293,9 +293,14 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
     }
 
     private deleteQuotaRow(index: number) {
-        //TODO Implement me
         // @ts-ignore
         const quotaCopy = [...this.state.quotas]
+        quotaCopy.splice(index, 1)
+        this.tempQuotas.splice(index, 1)
+        this.setState({
+            'quotas': quotaCopy,
+            'prettyPrintQuotas': this.formatQuotas()
+        })
 
     }
 
@@ -518,8 +523,7 @@ export default class NewEvent extends Component<NewEventProps, NewEventState> {
                                                    onChange={e => this.saveQuotaValue(e.target.value, index)}/>
                                         </div>
                                         <div className={"control"}>
-                                            <i className="fas fa-trash-alt"
-                                               onClick={() => this.deleteQuotaRow(index)}></i>
+                                            <button className="delete" onClick={() => this.deleteQuotaRow(index)}></button>
                                         </div>
                                     </div>
                                 ))
